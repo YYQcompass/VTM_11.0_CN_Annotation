@@ -1718,7 +1718,7 @@ const PredictionUnit* CodingStructure::getPURestricted( const Position &pos, con
   // exists       same slice and tile                  pu precedes curPu in encoding order
   //                                                  (thus, is either from parent CS in RD-search or its index is lower)
   const bool wavefrontsEnabled = curPu.cu->slice->getSPS()->getEntropyCodingSyncEnabledFlag();
-  int ctuSizeBit = floorLog2(curPu.cs->sps->getMaxCUWidth());
+  int ctuSizeBit = floorLog2(curPu.cs->sps->getMaxCUWidth()); // Default value of Max CU width is 64
   int xNbY  = pos.x << getChannelTypeScaleX( _chType, curPu.chromaFormat );
   int xCurr = curPu.blocks[_chType].x << getChannelTypeScaleX( _chType, curPu.chromaFormat );
   bool addCheck = (wavefrontsEnabled && (xNbY >> ctuSizeBit) >= (xCurr >> ctuSizeBit) + 1 ) ? false : true;

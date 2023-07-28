@@ -972,7 +972,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   const unsigned plevel = pu.cs->sps->getLog2ParallelMergeLevelMinus2() + 2;
   const CodingStructure &cs  = *pu.cs;
   const Slice &slice         = *pu.cs->slice;
-  const uint32_t maxNumMergeCand = pu.cs->sps->getMaxNumMergeCand();
+  const uint32_t maxNumMergeCand = pu.cs->sps->getMaxNumMergeCand(); //该变量表示Merge候选列表的最大长度
   CHECK (maxNumMergeCand > MRG_MAX_NUM_CANDS, "selected maximum number of merge candidate exceeds global limit");
   for (uint32_t ui = 0; ui < maxNumMergeCand; ++ui)
   {
@@ -994,7 +994,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   const Position posLB = pu.Y().bottomLeft();
   MotionInfo miAbove, miLeft, miAboveLeft, miAboveRight, miBelowLeft;
 
-  // above
+  // above: B1 block
   const PredictionUnit *puAbove = cs.getPURestricted(posRT.offset(0, -1), pu, pu.chType);
 
   bool isAvailableB1 = puAbove && isDiffMER(pu.lumaPos(), posRT.offset(0, -1), plevel) && pu.cu != puAbove->cu && CU::isInter(*puAbove->cu);
@@ -1028,7 +1028,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
     return;
   }
 
-  //left
+  //left: A1 block
   const PredictionUnit* puLeft = cs.getPURestricted(posLB.offset(-1, 0), pu, pu.chType);
 
   const bool isAvailableA1 = puLeft && isDiffMER(pu.lumaPos(), posLB.offset(-1, 0), plevel) && pu.cu != puLeft->cu && CU::isInter(*puLeft->cu);
@@ -1037,7 +1037,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   {
     miLeft = puLeft->getMotionInfo(posLB.offset(-1, 0));
 
-    if (!isAvailableB1 || (miAbove != miLeft))
+    if (!isAvailableB1 || (miAbove != miLeft)) // redundancy check, 如果B1没有，直接添加A1；如果B1已经被添加，check A1和B1，不一样则添加A1
     {
       // get Inter Dir
       mrgCtx.interDirNeighbours[cnt] = miLeft.interDir;
@@ -1065,7 +1065,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
     return;
   }
 
-  // above right
+  // above right: B0 block
   const PredictionUnit *puAboveRight = cs.getPURestricted( posRT.offset( 1, -1 ), pu, pu.chType );
 
   bool isAvailableB0 = puAboveRight && isDiffMER( pu.lumaPos(), posRT.offset(1, -1), plevel) && CU::isInter( *puAboveRight->cu );
@@ -1074,7 +1074,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   {
     miAboveRight = puAboveRight->getMotionInfo( posRT.offset( 1, -1 ) );
 
-    if( !isAvailableB1 || ( miAbove != miAboveRight ) )
+    if( !isAvailableB1 || ( miAbove != miAboveRight ) ) // redundancy check, 如果B1没有，直接添加B0；如果B1已经被添加，check A1和B0，不一样则添加B0
     {
 
       // get Inter Dir
@@ -1103,7 +1103,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
     return;
   }
 
-  //left bottom
+  //left bottom: A0 block
   const PredictionUnit *puLeftBottom = cs.getPURestricted( posLB.offset( -1, 1 ), pu, pu.chType );
 
   bool isAvailableA0 = puLeftBottom && isDiffMER( pu.lumaPos(), posLB.offset(-1, 1), plevel) && CU::isInter( *puLeftBottom->cu );
@@ -1112,7 +1112,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   {
     miBelowLeft = puLeftBottom->getMotionInfo( posLB.offset( -1, 1 ) );
 
-    if( !isAvailableA1 || ( miBelowLeft != miLeft ) )
+    if( !isAvailableA1 || ( miBelowLeft != miLeft ) )// redundancy check, 如果A1没有，直接添加A0；如果A1已经被添加，check A1和A0，不一样则添加A0
     {
       // get Inter Dir
       mrgCtx.interDirNeighbours[cnt] = miBelowLeft.interDir;
@@ -1140,7 +1140,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
     return;
   }
 
-  // above left
+  // above left: B2 block
   if ( cnt < 4 )
   {
     const PredictionUnit *puAboveLeft = cs.getPURestricted( posLT.offset( -1, -1 ), pu, pu.chType );
@@ -1180,12 +1180,12 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   {
     return;
   }
-
-  if (slice.getPicHeader()->getEnableTMVPFlag() && (pu.lumaSize().width + pu.lumaSize().height > 12))
+  // Temporal MVP candidates
+  if (slice.getPicHeader()->getEnableTMVPFlag() && (pu.lumaSize().width + pu.lumaSize().height > 12)) // PU 的大小需大于4x4
   {
     //>> MTK colocated-RightBottom
     // offset the pos to be sure to "point" to the same position the uiAbsPartIdx would've pointed to
-    Position posRB = pu.Y().bottomRight().offset( -3, -3 );
+    Position posRB = pu.Y().bottomRight().offset( -3, -3 );// TODO: >> ????
     const PreCalcValues& pcv = *cs.pcv;
 
     Position posC0;
@@ -1256,7 +1256,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
   }
 
   int maxNumMergeCandMin1 = maxNumMergeCand - 1;
-  if (cnt != maxNumMergeCandMin1)
+  if (cnt != maxNumMergeCandMin1) // 规定空域候选最多4个，时域候选最多1个，如果前面的候选都可以获取，则此处cnt==maxNumMergeCandMin1，否则添加HMVP
   {
     bool isGt4x4 = true;
     bool bFound  = addMergeHMVPCand(cs, mrgCtx, mrgCandIdx, maxNumMergeCandMin1, cnt, isAvailableA1, miLeft,
@@ -1336,7 +1336,7 @@ void PU::getInterMergeCandidates( const PredictionUnit &pu, MergeCtx& mrgCtx,
 
   int r = 0;
   int refcnt = 0;
-  while (uiArrayAddr < maxNumMergeCand)
+  while (uiArrayAddr < maxNumMergeCand) // (0,0)向量的填充
   {
     mrgCtx.interDirNeighbours [uiArrayAddr     ] = 1;
     mrgCtx.BcwIdx             [uiArrayAddr     ] = BCW_DEFAULT;
@@ -1456,7 +1456,9 @@ int PU::getDistScaleFactor(const int &currPOC, const int &currRefPOC, const int 
 {
   return xGetDistScaleFactor(currPOC, currRefPOC, colPOC, colRefPOC);
 }
-
+/*
+Merge mode with MVD
+*/
 void PU::getInterMMVDMergeCandidates(const PredictionUnit &pu, MergeCtx& mrgCtx, const int& mrgCandIdx)
 {
   int refIdxList0, refIdxList1;

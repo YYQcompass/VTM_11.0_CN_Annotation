@@ -679,6 +679,7 @@ void EncCu::xCompressCU( CodingStructure*& tempCS, CodingStructure*& bestCS, Par
     m_bestBcwCost[0] = m_bestBcwCost[1] = std::numeric_limits<double>::max();
     m_bestBcwIdx[0] = m_bestBcwIdx[1] = -1;
   }
+  // RDO 遍历所有MODE
   do
   {
     for (int i = compBegin; i < (compBegin + numComp); i++)
@@ -2283,20 +2284,21 @@ void EncCu::xCheckRDCostMerge2Nx2N( CodingStructure *&tempCS, CodingStructure *&
     PU::getInterMMVDMergeCandidates(pu, mergeCtx);
     pu.regularMergeFlag = true;
   }
-  bool candHasNoResidual[MRG_MAX_NUM_CANDS + MMVD_ADD_NUM];
+  bool candHasNoResidual[MRG_MAX_NUM_CANDS + MMVD_ADD_NUM];//没有残差的候选模式 总数是6（Merge） + 64（MMVD Merge)
   for (uint32_t ui = 0; ui < MRG_MAX_NUM_CANDS + MMVD_ADD_NUM; ui++)
   {
     candHasNoResidual[ui] = false;
   }
 
-  bool                                        bestIsSkip = false;
-  bool                                        bestIsMMVDSkip = true;
-  PelUnitBuf                                  acMergeBuffer[MRG_MAX_NUM_CANDS];
-  PelUnitBuf                                  acMergeTmpBuffer[MRG_MAX_NUM_CANDS];
+  bool                                        bestIsSkip = false; //最佳模式是Skip模式
+  bool                                        bestIsMMVDSkip = true; //最佳模式是MMVD Skip模式
+  PelUnitBuf                                  acMergeBuffer[MRG_MAX_NUM_CANDS];//存储常规Merge模式预测像素
+  PelUnitBuf                                  acMergeTmpBuffer[MRG_MAX_NUM_CANDS];//用来存储常规Merge模式预测像素的临时空间
   PelUnitBuf                                  acMergeRealBuffer[MMVD_MRG_MAX_RD_BUF_NUM];
-  PelUnitBuf *                                acMergeTempBuffer[MMVD_MRG_MAX_RD_NUM];
+  PelUnitBuf *                                acMergeTempBuffer[MMVD_MRG_MAX_RD_NUM];//用来存储MMVD Merge模式的临时空间
   PelUnitBuf *                                singleMergeTempBuffer;
   int                                         insertPos;
+  // 进行SATD Cost计算的模式数目，初始化为可用常规Merge数目+64，后面会缩减
   unsigned                                    uiNumMrgSATDCand = mergeCtx.numValidMergeCand + MMVD_ADD_NUM;
 
   struct ModeInfo
@@ -2310,8 +2312,9 @@ void EncCu::xCheckRDCostMerge2Nx2N( CodingStructure *&tempCS, CodingStructure *&
       mergeCand(mergeCand), isRegularMerge(isRegularMerge), isMMVD(isMMVD), isCIIP(isCIIP) {}
   };
 
-  static_vector<ModeInfo, MRG_MAX_NUM_CANDS + MMVD_ADD_NUM>  RdModeList;
+  static_vector<ModeInfo, MRG_MAX_NUM_CANDS + MMVD_ADD_NUM>  RdModeList;// TODO: learn static_vector
   bool                                        mrgTempBufSet = false;
+  // candNum : 总的merge 候选数量
   const int candNum = mergeCtx.numValidMergeCand + (tempCS->sps->getUseMMVD() ? std::min<int>(MMVD_BASE_MV_NUM, mergeCtx.numValidMergeCand) * MMVD_MAX_REFINE_NUM : 0);
 
   for (int i = 0; i < candNum; i++)
@@ -2341,18 +2344,18 @@ void EncCu::xCheckRDCostMerge2Nx2N( CodingStructure *&tempCS, CodingStructure *&
   }
 
   bool isIntrainterEnabled = sps.getUseCiip();
-  if (bestCS->area.lwidth() * bestCS->area.lheight() < 64 || bestCS->area.lwidth() >= MAX_CU_SIZE || bestCS->area.lheight() >= MAX_CU_SIZE)
+  if (bestCS->area.lwidth() * bestCS->area.lheight() < 64 || bestCS->area.lwidth() >= MAX_CU_SIZE || bestCS->area.lheight() >= MAX_CU_SIZE) //当前CU的尺寸（宽*高）大于64且小于128才会使用Ciip
   {
     isIntrainterEnabled = false;
   }
   bool isTestSkipMerge[MRG_MAX_NUM_CANDS]; // record if the merge candidate has tried skip mode
   for (uint32_t idx = 0; idx < MRG_MAX_NUM_CANDS; idx++)
   {
-    isTestSkipMerge[idx] = false;
+    isTestSkipMerge[idx] = false; // 初始化
   }
-  if( m_pcEncCfg->getUseFastMerge() || isIntrainterEnabled)
+  if( m_pcEncCfg->getUseFastMerge() || isIntrainterEnabled) // FastMerge 在RA configuration里面默认打开
   {
-    uiNumMrgSATDCand = NUM_MRG_SATD_CAND;
+    uiNumMrgSATDCand = NUM_MRG_SATD_CAND;// 使用fastMerge或者ciip，普通merge候选就降成4个
     if (isIntrainterEnabled)
     {
       uiNumMrgSATDCand += 1;

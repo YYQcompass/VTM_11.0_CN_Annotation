@@ -212,7 +212,7 @@ uint32_t updateCandList(T uiMode, double uiCost, static_vector<T, N>& candModeLi
   size_t i;
   size_t shift = 0;
   size_t currSize = std::min( uiFastCandNum, candCostList.size() );
-
+  // 下面的操作保证了最小的cost始终放在candCostList[0]
   while( shift < uiFastCandNum && shift < currSize && uiCost < candCostList[currSize - 1 - shift] )
   {
     shift++;
