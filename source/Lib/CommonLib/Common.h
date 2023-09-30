@@ -120,7 +120,7 @@ struct UnitScale
 namespace std
 {
   template <>
-  struct hash<Position> : public unary_function<Position, uint64_t>
+  struct hash<Position> 
   {
     uint64_t operator()(const Position& value) const
     {
@@ -129,7 +129,7 @@ namespace std
   };
 
   template <>
-  struct hash<Size> : public unary_function<Size, uint64_t>
+  struct hash<Size> 
   {
     uint64_t operator()(const Size& value) const
     {

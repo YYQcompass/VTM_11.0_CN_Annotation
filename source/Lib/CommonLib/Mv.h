@@ -273,7 +273,7 @@ public:
 namespace std
 {
   template <>
-  struct hash<Mv> : public unary_function<Mv, uint64_t>
+  struct hash<Mv> 
   {
     uint64_t operator()(const Mv& value) const
     {
