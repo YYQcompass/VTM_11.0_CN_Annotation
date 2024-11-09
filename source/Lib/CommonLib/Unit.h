@@ -119,9 +119,7 @@ inline Size recalcSize( const ChromaFormat _cf, const ChannelType srcCHt, const 
 // ---------------------------------------------------------------------------
 // block definition
 // ---------------------------------------------------------------------------
-#if CN_ANNOTATION
-// 在 Area 的基础上，增加 compID 和 chromaFormat
-#endif
+
 struct CompArea : public Area
 {
   CompArea() : Area(), chromaFormat(NUM_CHROMA_FORMAT), compID(MAX_NUM_TBLOCKS)                                                                                                                                 { }
@@ -129,36 +127,23 @@ struct CompArea : public Area
   CompArea(const ComponentID _compID, const ChromaFormat _cf, const Position& _pos, const Size& _size, const bool isLuma = false)                    : Area(_pos, _size),    chromaFormat(_cf), compID(_compID) { if (isLuma) xRecalcLumaToChroma(); }
   CompArea(const ComponentID _compID, const ChromaFormat _cf, const uint32_t _x, const uint32_t _y, const uint32_t _w, const uint32_t _h, const bool isLuma = false) : Area(_x, _y, _w, _h), chromaFormat(_cf), compID(_compID) { if (isLuma) xRecalcLumaToChroma(); }
 
-#if CN_ANNOTATION
-  // ChromaFormat 有4种，CHROMA_400, CHROMA_420, CHROMA_422, CHROMA_444
-  // ComponentID 有3种，Y，Cb 和 Cr 
-#endif
-  ChromaFormat chromaFormat;  
-  ComponentID compID;         
-#if CN_ANNOTATION
-  // 提供获取亮度和色度分量的位置和尺寸信息的方法
-#endif
+  ChromaFormat chromaFormat;
+  ComponentID compID;
+
   Position chromaPos() const;
   Position lumaPos()   const;
 
   Size     chromaSize() const;
   Size     lumaSize()   const;
-#if CN_ANNOTATION
-  // 获取指定 Component 或通道的位置
-#endif
+
   Position compPos( const ComponentID compID ) const;
   Position chanPos( const ChannelType chType ) const;
 
-#if CN_ANNOTATION
-  // 计算并返回指定 ComponentID 的 四个顶点位置
-#endif
   Position topLeftComp    (const ComponentID _compID) const { return recalcPosition(chromaFormat, compID, _compID, *this);                                                     }
   Position topRightComp   (const ComponentID _compID) const { return recalcPosition(chromaFormat, compID, _compID, { (PosType) (x + width - 1), y                          }); }
   Position bottomLeftComp (const ComponentID _compID) const { return recalcPosition(chromaFormat, compID, _compID, { x                        , (PosType) (y + height - 1 )}); }
   Position bottomRightComp(const ComponentID _compID) const { return recalcPosition(chromaFormat, compID, _compID, { (PosType) (x + width - 1), (PosType) (y + height - 1 )}); }
-#if CN_ANNOTATION
-  // 判断CompArea的有效性
-#endif
+
   bool valid() const { return chromaFormat < NUM_CHROMA_FORMAT && compID < MAX_NUM_TBLOCKS && width != 0 && height != 0; }
 
   const bool operator==(const CompArea &other) const
@@ -181,9 +166,7 @@ private:
 
   void xRecalcLumaToChroma();
 };
-#if CN_ANNOTATION
-// 对 CompArea 进行裁剪，限制在 boundingBox 所指示的范围内。
-#endif
+
 inline CompArea clipArea(const CompArea &compArea, const Area &boundingBox)
 {
   return CompArea(compArea.compID, compArea.chromaFormat, clipArea((const Area&) compArea, boundingBox));
@@ -304,103 +287,45 @@ class  CodingStructure;
 
 struct CodingUnit : public UnitArea
 {
-#if CN_ANNOTATION
-  // 父级CodingStructure
-#endif
-  CodingStructure *cs;    
-#if CN_ANNOTATION
-  // 指向CU所属slice
-#endif
-  Slice *slice;      
-#if CN_ANNOTATION
-  // 颜色通道类型
-#endif
-  ChannelType    chType;  
-#if CN_ANNOTATION
-// 预测模式，帧内还是帧间
-#endif
+  CodingStructure *cs;
+  Slice *slice;
+  ChannelType    chType;
+
   PredMode       predMode;
-#if CN_ANNOTATION
-// 总深度，为QTBTTT的深度，所有划分类型，一旦划分则+1
-#endif
-  uint8_t          depth;   // number of all splits, applied with generalized splits 
-#if CN_ANNOTATION
-// 在进行mtt划分之前，四叉树深度
-#endif
-  uint8_t          qtDepth; // number of applied quad-splits, before switching to the multi-type-tree (mtt) 
-#if CN_ANNOTATION
-  //  btDepth和mtDepth都是描述MT的深度，在只有BT划分时，两者相等；但是CU使用TT划分时，两端的BTdepth将比mtdepth大1
-#endif
+
+  uint8_t          depth;   // number of all splits, applied with generalized splits
+  uint8_t          qtDepth; // number of applied quad-splits, before switching to the multi-type-tree (mtt)
   // a triple split would increase the mtDepth by 1, but the qtDepth by 2 in the first and last part and by 1 in the middle part (because of the 1-2-1 split proportions)
-#if CN_ANNOTATION
-  // 二叉树深度
-#endif
   uint8_t          btDepth; // number of applied binary splits, after switching to the mtt (or it's equivalent)
-#if CN_ANNOTATION
-// 多叉树深度
-#endif
-  uint8_t          mtDepth; // the actual number of splits after switching to mtt (equals btDepth if only binary splits are allowed) 
-#if CN_ANNOTATION
-  // 色度QP偏移值
-#endif
-  int8_t          chromaQpAdj; 
-#if CN_ANNOTATION
-  // 实际编码QP值
-#endif
-  int8_t          qp;          
-#if CN_ANNOTATION
-  // 其二进制数标识生成当前CU尺寸时，CTU划分顺序
-#endif
-  SplitSeries    splitSeries;  
+  uint8_t          mtDepth; // the actual number of splits after switching to mtt (equals btDepth if only binary splits are allowed)
+  int8_t          chromaQpAdj;
+  int8_t          qp;
+  SplitSeries    splitSeries;
   TreeType       treeType;
   ModeType       modeType;
   ModeTypeSeries modeTypeSeries;
-#if CN_ANNOTATION
- // 是否SKIP模式
-#endif
-  bool           skip;               
-#if CN_ANNOTATION
-// 是否SKIP with MMVD模式
-#endif
-  bool           mmvdSkip;            
-#if CN_ANNOTATION
-// 是否是affine 模式
-#endif
-  bool           affine;              
-#if CN_ANNOTATION
-// 仿射运动模型类型（四参数、六参数）
-#endif
-  int            affineType;          
+  bool           skip;
+  bool           mmvdSkip;
+  bool           affine;
+  int            affineType;
   bool           colorTransform;
   bool           geoFlag;
   int            bdpcmMode;
   int            bdpcmModeChroma;
-#if CN_ANNOTATION
-// 运动矢量精度
-#endif
-  uint8_t          imv;               
+  uint8_t          imv;
   bool           rootCbf;
-#if CN_ANNOTATION
-// sub-block transform 信息
-#endif
-  uint8_t        sbtInfo;             
+  uint8_t        sbtInfo;
   uint32_t           tileIdx;
   uint8_t         mtsFlag;
   uint32_t        lfnstIdx;
   uint8_t         BcwIdx;
-#if CN_ANNOTATION
- // 两个参考帧的索引
-#endif
-  int             refIdxBi[2];       
+  int             refIdxBi[2];
   bool           mipFlag;
 
   // needed for fast imv mode decisions
   int8_t          imvNumCand;
   uint8_t          smvdMode;
-#if CN_ANNOTATION
-// 是否为ISP模式，帧内改进的逐行预测模式
-#endif
-  uint8_t        ispMode;             
+  uint8_t        ispMode;
   bool           useEscape[MAX_NUM_CHANNEL_TYPE];
   bool           useRotation[MAX_NUM_CHANNEL_TYPE];
   bool           reuseflag[MAX_NUM_CHANNEL_TYPE][MAXPLTPREDSIZE];
@@ -413,23 +338,18 @@ struct CodingUnit : public UnitArea
   CodingUnit(const UnitArea &unit);
   CodingUnit(const ChromaFormat _chromaFormat, const Area &area);
 
-  CodingUnit& operator=( const CodingUnit& other );  
+  CodingUnit& operator=( const CodingUnit& other );
 
-  void initData(); 
-#if CN_ANNOTATION
-// 在上层CU中的索引
-#endif
-  unsigned    idx;  
-#if CN_ANNOTATION
-// 指向下一个CU，stack中
-#endif
-  CodingUnit *next; 
+  void initData();
+
+  unsigned    idx;
+  CodingUnit *next;
 
   PredictionUnit *firstPU;
-  PredictionUnit *lastPU; 
+  PredictionUnit *lastPU;
 
-  TransformUnit *firstTU; 
-  TransformUnit *lastTU;  
+  TransformUnit *firstTU;
+  TransformUnit *lastTU;
 #if ENABLE_SPLIT_PARALLELISM
 
   int64_t cacheId;
@@ -451,18 +371,14 @@ struct CodingUnit : public UnitArea
 // ---------------------------------------------------------------------------
 // prediction unit
 // ---------------------------------------------------------------------------
-#if CN_ANNOTATION
-// IntraPredictionData 定义了帧内预测数据，包括帧内预测模式及相关参考行索引。
-#endif
+
 struct IntraPredictionData
 {
   uint32_t  intraDir[MAX_NUM_CHANNEL_TYPE];
   bool      mipTransposedFlag;
   int       multiRefIdx;
 };
-#if CN_ANNOTATION
-// InterPredictionData 定义了帧间预测数据，包含所有帧间预测数据（MV，refidx，merge，skip，MMVD ，affine,ciip等）
-#endif
+
 struct InterPredictionData
 {
   bool      mergeFlag;

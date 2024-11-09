@@ -50,7 +50,6 @@
 #include <assert.h>
 #include <cassert>
 
-#define CN_ANNOTATION                                     0
 // clang-format off
 
 //########### place macros to be removed in next cycle below this line ###############

@@ -92,13 +92,8 @@ private:
   void rateStatsAccum   ( const AccessUnit& au, const std::vector<uint32_t>& stats);
   void printRateSummary ();
   void printChromaFormat();
-#if CN_ANNOTATION
-  // ??? 应该是存储已经编码的帧
-#endif
+
   std::list<PelUnitBuf*> m_recBufList;
-#if CN_ANNOTATION
-  // 当前已经 encoded 的帧数
-#endif
   int                    m_numEncoded;
   PelStorage*            m_trueOrgPic;
   PelStorage*            m_orgPic;

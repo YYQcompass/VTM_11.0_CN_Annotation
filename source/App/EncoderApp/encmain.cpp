@@ -78,12 +78,12 @@ static void printMacroSettings()
 }
 
 // ====================================================================================================================
-// Main function 编码端主函数
+// Main function
 // ====================================================================================================================
 
 int main(int argc, char* argv[])
 {
-  // print information 终端打印编码器信息
+  // print information
   fprintf( stdout, "\n" );
   fprintf( stdout, "VVCSoftware: VTM Encoder Version %s ", VTM_VERSION );
   fprintf( stdout, NVM_ONOS );
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
         }
       }
 
-      if( !pcEncApp[layerIdx]->parseCfg( j, layerArgv ) ) //解析configuration file
+      if( !pcEncApp[layerIdx]->parseCfg( j, layerArgv ) )
       {
         pcEncApp[layerIdx]->destroy();
         return 1;

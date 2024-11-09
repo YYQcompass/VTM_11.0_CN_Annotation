@@ -1258,7 +1258,7 @@ bool EncApp::encodePrep( bool& eos )
   const InputColourSpaceConversion ipCSC = m_inputColourSpaceConvert;
   const InputColourSpaceConversion snrCSC = ( !m_snrInternalColourSpace ) ? m_inputColourSpaceConvert : IPCOLOURSPACE_UNCHANGED;
 
-  // read input YUV file 读取输入的YUV文件
+  // read input YUV file
 #if EXTENSION_360_VIDEO
   if( m_ext360->isEnabled() )
   {
