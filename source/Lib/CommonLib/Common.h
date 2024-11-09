@@ -42,83 +42,120 @@
 
 typedef int PosType;
 typedef uint32_t SizeType;
+#if CN_ANNOTATION
 // Position 结构体
+#endif
 struct Position
 {
+#if CN_ANNOTATION
   // 成员变量x和y分别表示横纵坐标值
+#endif
   PosType x;
   PosType y;
-
-  Position()                                   : x(0),  y(0)  { } // 默认构造函数，将坐标设为原点（0, 0）
-  Position(const PosType _x, const PosType _y) : x(_x), y(_y) { } // 带参数构造函数，根据输入的坐标值构建Position对象
-
+#if CN_ANNOTATION
+  // 默认构造函数，将坐标设为原点（0, 0）
+#endif
+  Position()                                   : x(0),  y(0)  { }
+#if CN_ANNOTATION
+  // 带参数构造函数，根据输入的坐标值构建Position对象
+#endif
+  Position(const PosType _x, const PosType _y) : x(_x), y(_y) { } 
+#if CN_ANNOTATION
   // 重载!=运算符，判断两个 Position 对象是否不相等
+#endif
   bool operator!=(const Position &other)  const { return x != other.x || y != other.y; }
+#if CN_ANNOTATION
   // 重载==运算符，判断两个 Position 对象是否相等
+#endif
   bool operator==(const Position &other)  const { return x == other.x && y == other.y; }
-
+#if CN_ANNOTATION
   // 计算当前 Position 与输入 Position 相加后的新的 Position
+#endif
   Position offset(const Position pos)                 const { return Position(x + pos.x, y + pos.y); }
   Position offset(const PosType _x, const PosType _y) const { return Position(x + _x   , y + _y   ); }
+#if CN_ANNOTATION
   // 将当前 Position 重新定位到新的坐标位置
+#endif
   void     repositionTo(const Position newPos)              { x  = newPos.x; y  = newPos.y; }
+#if CN_ANNOTATION
   // 将当前Position转换为相对于某一原点的相对位置
+#endif
   void     relativeTo  (const Position origin)              { x -= origin.x; y -= origin.y; }
-
+#if CN_ANNOTATION
   // 重载-运算符，计算当前Position与输入Position之间的差值
+#endif
   Position operator-( const Position &other )         const { return{ x - other.x, y - other.y }; }
-  /*
-   * 关于上面两个const的进一步说明：
-   * 函数参数前的 const：表示传入的 Position 对象 other 是常量引用，意味着在该成员函数内部不会修改 other 的内容。
-   * 函数声明末尾的 const： 表示该成员函数是一个常量成员函数。当一个成员函数被声明为 const，这意味着它不会改变调用它的对象的状态。
-   *    对于这个 - 运算符重载函数而言，尽管它返回一个新的 Position 对象，但它并没有改变调用该函数的对象的 x 和 y 值。
-   */
+#if CN_ANNOTATION
+  //
+   // 关于上面两个const的进一步说明：
+   // 函数参数前的 const：表示传入的 Position 对象 other 是常量引用，意味着在该成员函数内部不会修改 other 的内容。
+   // 函数声明末尾的 const： 表示该成员函数是一个常量成员函数。当一个成员函数被声明为 const，这意味着它不会改变调用它的对象的状态。
+   //    对于这个 - 运算符重载函数而言，尽管它返回一个新的 Position 对象，但它并没有改变调用该函数的对象的 x 和 y 值。
+   //
+#endif
 };
-
+#if CN_ANNOTATION
 // 定义 Size 结构体，用于表示一个矩形区域的尺寸（宽和高）
+#endif
 struct Size
 {
+#if CN_ANNOTATION
   // 成员变量width和height分别表示矩形区域的宽度和高度
+#endif
   SizeType width;
   SizeType height;
-
+#if CN_ANNOTATION
   // 默认构造函数，将尺寸设为零（0, 0）
+#endif
   Size()                                              : width(0),      height(0)       { }
+#if CN_ANNOTATION
   // 带参数构造函数，根据输入的宽度和高度构建Size对象
+#endif
   Size(const SizeType _width, const SizeType _height) : width(_width), height(_height) { }
 
   bool operator!=(const Size &other)      const { return (width != other.width) || (height != other.height); }
   bool operator==(const Size &other)      const { return (width == other.width) && (height == other.height); }
+#if CN_ANNOTATION
   // 计算Size对象所表示矩形区域的面积
+#endif
   uint32_t area()                             const { return (uint32_t) width * (uint32_t) height; }
 #if REUSE_CU_RESULTS_WITH_MULTIPLE_TUS
+#if CN_ANNOTATION
   // 根据输入的新尺寸调整当前Size对象的尺寸
+#endif
   void resizeTo(const Size newSize)             { width = newSize.width; height = newSize.height; }
 #endif
 };
-
+#if CN_ANNOTATION
 // 定义了一个名为 Area 的结构体，它继承自Position和Size结构体，从而结合了位置和尺寸信息来表示一个矩形区域。
+#endif
 struct Area : public Position, public Size
 {
   Area()                                                                         : Position(),       Size()       { }
   Area(const Position &_pos, const Size &_size)                                  : Position(_pos),   Size(_size)  { }
   Area(const PosType _x, const PosType _y, const SizeType _w, const SizeType _h) : Position(_x, _y), Size(_w, _h) { }
-
+#if CN_ANNOTATION
   // 提供对 Area 作为 Position 和 Size 的访问接口
+#endif
         Position& pos()                           { return *this; }
   const Position& pos()                     const { return *this; }
         Size&     size()                          { return *this; }
   const Size&     size()                    const { return *this; }
+#if CN_ANNOTATION
   // 获取矩形区域的四个顶点与中心点
+#endif
   const Position& topLeft()                 const { return *this; }
         Position  topRight()                const { return { (PosType) (x + width - 1), y                          }; }
         Position  bottomLeft()              const { return { x                        , (PosType) (y + height - 1) }; }
         Position  bottomRight()             const { return { (PosType) (x + width - 1), (PosType) (y + height - 1) }; }
         Position  center()                  const { return { (PosType) (x + width / 2), (PosType) (y + height / 2) }; }
-
+#if CN_ANNOTATION
   // 判断给定点是否在区域内
+#endif
   bool contains(const Position &_pos)       const { return (_pos.x >= x) && (_pos.x < (x + width)) && (_pos.y >= y) && (_pos.y < (y + height)); }
+#if CN_ANNOTATION
   // 判断给定区域是否完全在本区域内，其实就是判断左上点和右下点是否都在区域内
+#endif
   bool contains(const Area &_area)          const { return contains(_area.pos()) && contains(_area.bottomRight()); }
 
   bool operator!=(const Area &other)        const { return (Size::operator!=(other)) || (Position::operator!=(other)); }
@@ -282,7 +319,4 @@ public:
     SizeIndexInfo::xInit();
   }
 };
-
-
-
 #endif
