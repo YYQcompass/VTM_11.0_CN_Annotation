@@ -93,8 +93,8 @@ private:
   void printRateSummary ();
   void printChromaFormat();
 
-  std::list<PelUnitBuf*> m_recBufList;
-  int                    m_numEncoded;
+  std::list<PelUnitBuf*> m_recBufList;    // ??? 应该是存储已经编码的帧
+  int                    m_numEncoded;    // 当前已经 encoded 的帧数
   PelStorage*            m_trueOrgPic;
   PelStorage*            m_orgPic;
   PelStorage*            m_filteredOrgPic;

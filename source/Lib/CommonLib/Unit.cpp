@@ -105,9 +105,10 @@ Size CompArea::chromaSize() const
     return *this;
   }
 }
-
+// 给定一个CompArea，返回其lumaPos
 Position CompArea::lumaPos() const
 {
+  // 如果当前的CompArea是Chroma，那就得算一下luma与chroma的缩放系数，然后再放缩坐标值。
   if( isChroma( compID ) )
   {
     uint32_t scaleX = getComponentScaleX( compID, chromaFormat );
@@ -115,7 +116,7 @@ Position CompArea::lumaPos() const
 
     return Position( x << scaleX, y << scaleY );
   }
-  else
+  else // 如果当前的CompArea是luma，直接返回
   {
     return *this;
   }
